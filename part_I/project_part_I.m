@@ -1,6 +1,8 @@
 %% 6.438 FALL 2015
 %% MAIN FILE FOR PART I OF PROJECT
 
+% Will Whitney
+
 % make sure you have unzipped all the given files in the same dir...
 
 clc; close all; clear;
@@ -74,6 +76,7 @@ while(1)
     for i = 1:n
         Mhat_to_code(i) = log(M_to_code(i, 1)) - log(M_to_code(i, 2));
     end
+    display(sum(abs(M_to_code(:, 1) - M_to_code(:, 2))))
     
     phi_hat = ones(1000, 1);
     for i = 1:size(phi_hat, 1)
@@ -82,8 +85,6 @@ while(1)
     
     % node to factor
     display('node to factor')
-%     f_to_n = o_code.factor_to_node;
-%     n_to_f = o_code.node_to_factor;
     for i = 1:n
 %         fprintf(['node' num2str(i) '\n']);
         node_pot = phi_hat(i);
@@ -109,10 +110,7 @@ while(1)
         
         end
     end
-    
-%     o_code.factor_to_node = f_to_n;
-%     o_code.node_to_factor = n_to_f;
-    
+        
     
     % factor to node
     display('factor to node')
@@ -123,14 +121,8 @@ while(1)
                 continue;
             end
             
-            msg = 1;
-            
-            % not sure this is the right polarity
-            % possibly this should be x(a) == 0
-            if x(a) == 1
-                msg = msg * -1;
-            end
-            
+            msg = (-1).^(x(a));
+                        
             for j = 1:n
                 if i == j || H(a, j) == 0
                     continue;
@@ -141,9 +133,6 @@ while(1)
             o_code.factor_to_node(a, i) = msg;
         end
     end
-    
-%     o_code.factor_to_node = f_to_n;
-%     o_code.node_to_factor = n_to_f;
     
     % write out the M_from_code
     for i = 1:n
@@ -230,7 +219,8 @@ while(1)
         end
         M_from_source(i, :) = result;
     end
-
+%     display(sum(o_source_new - o_source));
+    
     % save our new messages for use next time
     o_source = o_source_new;
     
@@ -263,10 +253,11 @@ while(1)
         for j = 1:4 
             options(j) = phi_source(i, j) * M_from_source(i, j) * M_to_source(1, i, j); 
         end
-%         options
         [thing, argm] = max(options);
-        s_hat(i) = argm;
+       
+        s_hat(i) = argm-1;
     end
+    
 
     % ************************************************************
     % ****** write your code here for computing error ************
@@ -288,6 +279,12 @@ while(1)
             errs = errs + 1;
         end
     end
+    
+%     if l > 1
+%        display( sum(abs(M_from_code - M_from_code_old)))
+%     end
+%     display(M_from_code(1:100, :))
+%     M_from_code_old = M_from_code;
     
     vector_error = [vector_error errs];
     fprintf(['... Error = ' num2str(errs) '\n']);
