@@ -166,31 +166,40 @@ while(1)
     o_source_new = ones(size(o_source));
     
     
-    
-    for i = 2:m-1
-        
+    % do one round of bidirectional sum-product
+    for i = 1:m
        for j = [i-1, i+1]
-           msg = zeros(4);
+           if j > m || j < 1
+               continue
+           end
            
+           msg = zeros(4);
            for sj = 1:4
-               submsg = 0;
+                submsg = 0;
                 for si = 1:4
                     prod = 1;
                     if i > j && i+1 <= m
-                       prod = prod * o_source(i+1, i);
+                        prod = prod * o_source(i+1, i);
                     elseif i < j && i-1 >= 1
                         prod = prod * o_source(i-1, i);
                     end
-                    submsg = submsg + phi_source(i, s) * psi_source(si, sj) * prod;
+                    submsg = submsg + M_to_source(i, si) * phi_source(i, s) * psi_source(si, sj) * prod;
                 end
                 msg(sj) = submsg;
            end
            
+           msg = msg / sum(msg);
            o_source_new(i, j) = msg;
        end
+    end
+    
+    % write out the M_from_source values
+    for i = 1:m
         
     end
 
+    % save our new messages for use next time
+    o_source = o_source_new;
     
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     % [4] ALPHABET-TO-BIT CONVERSION FOR CODE GRAPH BP

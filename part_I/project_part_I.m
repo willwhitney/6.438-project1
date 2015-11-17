@@ -66,6 +66,7 @@ while(1)
     %                 [size n x 2] (convert the LLR message to standard
     %                 message)
     %   o_code - struct of updated msgs in code graph
+    display('Step 1')
     
     Mhat_to_code = zeros(n, 1);
     for i = 1:n
@@ -78,6 +79,7 @@ while(1)
     end
     
     % node to factor
+    display('node to factor')
     for i = 1:n
         node_pot = phi_hat(i);
         for a = 1:k 
@@ -101,6 +103,7 @@ while(1)
     
     
     % factor to node
+    display('factor to node')
     for a = 1:k
         for i = 1:n
             msg = 1;
@@ -122,6 +125,7 @@ while(1)
         end
     end
     
+    % write out the M_from_code
     for i = 1:n
         msg = 0;
        
@@ -138,6 +142,7 @@ while(1)
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     % [2] BIT-TO-ALPHABET CONVERSION FOR SOURCE GRAPH BP
     % (no modification necessary)
+    display('Step 2')
     M_to_source = msgs_1to8_gray(M_from_code,1,m); % [size m x 4]
 
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -165,8 +170,8 @@ while(1)
     
     o_source_new = ones(size(o_source));
     
-    
-    
+    display('Step 3')
+    % do one round of bidirectional sum-product
     for i = 1:m
        for j = [i-1, i+1]
            if j > m || j < 1
@@ -174,7 +179,6 @@ while(1)
            end
            
            msg = zeros(4);
-           
            for sj = 1:4
                 submsg = 0;
                 for si = 1:4
@@ -189,15 +193,30 @@ while(1)
                 msg(sj) = submsg;
            end
            
-           o_source_new(i, j) = msg;
+           msg = msg / sum(msg);
+           o_source_new(i, j, :) = msg;
        end
-        
+    end
+    
+    % write out the M_from_source values
+    for i = 1:m
+        result = 1;
+        for j = [i-1, i+1]
+            if j > m || j < 1
+                continue
+            end
+            result = result .* o_source_new(j, i);
+        end
+        M_from_source(i, :) = result;
     end
 
+    % save our new messages for use next time
+    o_source = o_source_new;
     
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     % [4] ALPHABET-TO-BIT CONVERSION FOR CODE GRAPH BP
     % (no modification necessary)
+    display('Step 4')
     M_to_code = msgs_8to1_gray(M_from_source); % [size n x 2]
     
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -216,6 +235,13 @@ while(1)
     % output variable:
     %   s_hat - decoded solution using marginal mode
     %          [size m x 1]
+    
+    display('Step 5')
+    for i = 1:m
+        options = phi_source(i) .* M_from_source(i) .* M_to_source(i); 
+        [m, argm] = max(options);
+        s_hat(i) = argm;
+    end
 
     % ************************************************************
     % ****** write your code here for computing error ************
@@ -229,6 +255,15 @@ while(1)
     % output variable:
     %   errs - abs difference error
     %          [scalar variable]
+    
+    display('Step 6')
+
+    for i = 1:m
+        if s_hat(i) ~= s(i)
+            errs = errs + 1;
+        end
+    end
+    
     vector_error = [vector_error errs];
     fprintf(['... Error = ' num2str(errs) '\n']);
     % terminate if BP gradient doesn't change
