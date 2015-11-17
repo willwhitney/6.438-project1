@@ -8,6 +8,7 @@ bits = size(M_in,1)/(height*width);
 M = 2^bits;
 
 assert(size(M_in,1) == height * width * bits);
+% display([bits, height, width]);
 temp = reshape(M_in, [bits, height, width, 2]);
 M_out = ones(height, width, M);
 

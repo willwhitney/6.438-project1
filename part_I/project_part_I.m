@@ -36,6 +36,8 @@ s_hat_old = zeros(m,1); % previous estimate of source data
 o_code = struct('node_to_factor', zeros(n, k), 'factor_to_node', zeros(k, n));
 o_source = ones(m, m, 4);
 
+H = full(H);
+
 % start BP
 l = 0;
 while(1)
@@ -80,12 +82,16 @@ while(1)
     
     % node to factor
     display('node to factor')
-    f_to_n = o_code.factor_to_node;
-    n_to_f = o_code.node_to_factor;
-    parfor i = 1:n
-        fprintf(['node' num2str(i) '\n']);
+%     f_to_n = o_code.factor_to_node;
+%     n_to_f = o_code.node_to_factor;
+    for i = 1:n
+%         fprintf(['node' num2str(i) '\n']);
         node_pot = phi_hat(i);
         for a = 1:k 
+            if H(a, i) == 0
+                continue;
+            end
+            
             % use the node potential for this node
             msg = node_pot;
             
@@ -97,9 +103,9 @@ while(1)
                     continue;
                 end
                 
-                msg = msg + f_to_n(b, i);
+                msg = msg + o_code.factor_to_node(b, i);
             end
-            n_to_f(i, a) = msg;
+            o_code.node_to_factor(i, a) = msg;
         
         end
     end
@@ -110,9 +116,13 @@ while(1)
     
     % factor to node
     display('factor to node')
-    parfor a = 1:k
-        fprintf(['factor' num2str(a) '\n']);
+    for a = 1:k
+%         fprintf(['factor' num2str(a) '\n']);
         for i = 1:n
+            if H(a, i) == 0
+                continue;
+            end
+            
             msg = 1;
             
             % not sure this is the right polarity
@@ -125,15 +135,15 @@ while(1)
                 if i == j || H(a, j) == 0
                     continue;
                 end
-                msg = msg * tanh( n_to_f(j, a) / 2 );
+                msg = msg * tanh( o_code.node_to_factor(j, a) / 2 );
             end
             msg = 2 * atanh(msg);
-            f_to_n(a, i) = msg;
+            o_code.factor_to_node(a, i) = msg;
         end
     end
     
-    o_code.factor_to_node = f_to_n;
-    o_code.node_to_factor = n_to_f;
+%     o_code.factor_to_node = f_to_n;
+%     o_code.node_to_factor = n_to_f;
     
     % write out the M_from_code
     for i = 1:n
@@ -147,7 +157,7 @@ while(1)
         m1 = 1 - m0;
         M_from_code(i, :) = [m0, m1];
     end
-    
+%     display(size(M_from_code))
     
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     % [2] BIT-TO-ALPHABET CONVERSION FOR SOURCE GRAPH BP
@@ -183,7 +193,7 @@ while(1)
     display('Step 3')
     % do one round of bidirectional sum-product
     for i = 1:m
-        fprintf(['node' num2str(i) '\n']);
+%         fprintf(['node' num2str(i) '\n']);
         for j = [i-1, i+1]
            if j > m || j < 1
                continue
@@ -249,8 +259,12 @@ while(1)
     
     display('Step 5')
     for i = 1:m
-        options = phi_source(i) .* M_from_source(i) .* M_to_source(i); 
-        [m, argm] = max(options);
+        options = zeros(4, 1);
+        for j = 1:4 
+            options(j) = phi_source(i, j) * M_from_source(i, j) * M_to_source(1, i, j); 
+        end
+%         options
+        [thing, argm] = max(options);
         s_hat(i) = argm;
     end
 

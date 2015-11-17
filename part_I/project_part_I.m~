@@ -34,7 +34,9 @@ s_hat_old = zeros(m,1); % previous estimate of source data
 % using your favorate data structure,
 % keep track of updated msgs inside the code and source graph
 o_code = struct('node_to_factor', zeros(n, k), 'factor_to_node', zeros(k, n));
-o_source = ones(m, m, 2);
+o_source = ones(m, m, 4);
+
+H = full(H);
 
 % start BP
 l = 0;
@@ -66,6 +68,7 @@ while(1)
     %                 [size n x 2] (convert the LLR message to standard
     %                 message)
     %   o_code - struct of updated msgs in code graph
+    display('Step 1')
     
     Mhat_to_code = zeros(n, 1);
     for i = 1:n
@@ -78,9 +81,17 @@ while(1)
     end
     
     % node to factor
+    display('node to factor')
+%     f_to_n = o_code.factor_to_node;
+%     n_to_f = o_code.node_to_factor;
     for i = 1:n
+%         fprintf(['node' num2str(i) '\n']);
         node_pot = phi_hat(i);
         for a = 1:k 
+            if H(a, i) == 0
+                continue;
+            end
+            
             % use the node potential for this node
             msg = node_pot;
             
@@ -99,10 +110,19 @@ while(1)
         end
     end
     
+%     o_code.factor_to_node = f_to_n;
+%     o_code.node_to_factor = n_to_f;
+    
     
     % factor to node
+    display('factor to node')
     for a = 1:k
+%         fprintf(['factor' num2str(a) '\n']);
         for i = 1:n
+            if H(a, i) == 0
+                continue;
+            end
+            
             msg = 1;
             
             % not sure this is the right polarity
@@ -122,6 +142,10 @@ while(1)
         end
     end
     
+%     o_code.factor_to_node = f_to_n;
+%     o_code.node_to_factor = n_to_f;
+    
+    % write out the M_from_code
     for i = 1:n
         msg = 0;
        
@@ -133,11 +157,12 @@ while(1)
         m1 = 1 - m0;
         M_from_code(i, :) = [m0, m1];
     end
-    
+%     display(size(M_from_code))
     
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     % [2] BIT-TO-ALPHABET CONVERSION FOR SOURCE GRAPH BP
     % (no modification necessary)
+    display('Step 2')
     M_to_source = msgs_1to8_gray(M_from_code,1,m); % [size m x 4]
 
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -165,10 +190,11 @@ while(1)
     
     o_source_new = ones(size(o_source));
     
-    
+    display('Step 3')
     % do one round of bidirectional sum-product
     for i = 1:m
-       for j = [i-1, i+1]
+%         fprintf(['node' num2str(i) '\n']);
+        for j = [i-1, i+1]
            if j > m || j < 1
                continue
            end
@@ -183,19 +209,26 @@ while(1)
                     elseif i < j && i-1 >= 1
                         prod = prod * o_source(i-1, i);
                     end
-                    submsg = submsg + M_to_source(i, si) * phi_source(i, s) * psi_source(si, sj) * prod;
+                    submsg = submsg + M_to_source(1, i, si) * phi_source(i, si) * psi_source(si, sj) * prod;
                 end
                 msg(sj) = submsg;
            end
            
            msg = msg / sum(msg);
-           o_source_new(i, j) = msg;
-       end
+           o_source_new(i, j, :) = msg;
+        end
     end
     
     % write out the M_from_source values
     for i = 1:m
-        
+        result = 1;
+        for j = [i-1, i+1]
+            if j > m || j < 1
+                continue
+            end
+            result = result .* o_source_new(j, i);
+        end
+        M_from_source(i, :) = result;
     end
 
     % save our new messages for use next time
@@ -204,6 +237,7 @@ while(1)
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     % [4] ALPHABET-TO-BIT CONVERSION FOR CODE GRAPH BP
     % (no modification necessary)
+    display('Step 4')
     M_to_code = msgs_8to1_gray(M_from_source); % [size n x 2]
     
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -222,6 +256,16 @@ while(1)
     % output variable:
     %   s_hat - decoded solution using marginal mode
     %          [size m x 1]
+    
+    display('Step 5')
+    for i = 1:m
+        options = zeros(4);
+        for j = 1:4 
+            phi_source(i, j) .* M_from_source(i, j) .* M_to_source(1, i, :); 
+        end
+        [thing, argm] = max(options);
+        s_hat(i) = argm;
+    end
 
     % ************************************************************
     % ****** write your code here for computing error ************
@@ -235,6 +279,15 @@ while(1)
     % output variable:
     %   errs - abs difference error
     %          [scalar variable]
+    
+    display('Step 6')
+
+    for i = 1:m
+        if s_hat(i) ~= s(i)
+            errs = errs + 1;
+        end
+    end
+    
     vector_error = [vector_error errs];
     fprintf(['... Error = ' num2str(errs) '\n']);
     % terminate if BP gradient doesn't change
