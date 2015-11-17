@@ -34,7 +34,7 @@ s_hat_old = zeros(m,1); % previous estimate of source data
 % using your favorate data structure,
 % keep track of updated msgs inside the code and source graph
 o_code = struct('node_to_factor', zeros(n, k), 'factor_to_node', zeros(k, n));
-o_source = ones(m, m, 2);
+o_source = ones(m, m, 4);
 
 % start BP
 l = 0;
@@ -80,7 +80,10 @@ while(1)
     
     % node to factor
     display('node to factor')
-    for i = 1:n
+    f_to_n = o_code.factor_to_node;
+    n_to_f = o_code.node_to_factor;
+    parfor i = 1:n
+        fprintf(['node' num2str(i) '\n']);
         node_pot = phi_hat(i);
         for a = 1:k 
             % use the node potential for this node
@@ -94,17 +97,21 @@ while(1)
                     continue;
                 end
                 
-                msg = msg + o_code.factor_to_node(b, i);
+                msg = msg + f_to_n(b, i);
             end
-            o_code.node_to_factor(i, a) = msg;
+            n_to_f(i, a) = msg;
         
         end
     end
     
+%     o_code.factor_to_node = f_to_n;
+%     o_code.node_to_factor = n_to_f;
+    
     
     % factor to node
     display('factor to node')
-    for a = 1:k
+    parfor a = 1:k
+        fprintf(['factor' num2str(a) '\n']);
         for i = 1:n
             msg = 1;
             
@@ -118,12 +125,15 @@ while(1)
                 if i == j || H(a, j) == 0
                     continue;
                 end
-                msg = msg * tanh( o_code.node_to_factor(j, a) / 2 );
+                msg = msg * tanh( n_to_f(j, a) / 2 );
             end
             msg = 2 * atanh(msg);
-            o_code.factor_to_node(a, i) = msg;
+            f_to_n(a, i) = msg;
         end
     end
+    
+    o_code.factor_to_node = f_to_n;
+    o_code.node_to_factor = n_to_f;
     
     % write out the M_from_code
     for i = 1:n
@@ -173,7 +183,8 @@ while(1)
     display('Step 3')
     % do one round of bidirectional sum-product
     for i = 1:m
-       for j = [i-1, i+1]
+        fprintf(['node' num2str(i) '\n']);
+        for j = [i-1, i+1]
            if j > m || j < 1
                continue
            end
@@ -188,14 +199,14 @@ while(1)
                     elseif i < j && i-1 >= 1
                         prod = prod * o_source(i-1, i);
                     end
-                    submsg = submsg + M_to_source(i, si) * phi_source(i, s) * psi_source(si, sj) * prod;
+                    submsg = submsg + M_to_source(1, i, si) * phi_source(i, si) * psi_source(si, sj) * prod;
                 end
                 msg(sj) = submsg;
            end
            
            msg = msg / sum(msg);
            o_source_new(i, j, :) = msg;
-       end
+        end
     end
     
     % write out the M_from_source values
