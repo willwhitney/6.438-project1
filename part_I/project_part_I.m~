@@ -36,7 +36,7 @@ s_hat_old = zeros(m,1); % previous estimate of source data
 % using your favorate data structure,
 % keep track of updated msgs inside the code and source graph
 o_code = struct('node_to_factor', zeros(n, k), 'factor_to_node', zeros(k, n));
-o_source = ones(m, m, 4)/ 2;
+o_source = ones(m, m, 4);
 
 H = full(H);
 
@@ -73,6 +73,7 @@ while(1)
     display('Step 1')
     
     [M_from_code, o_code] = code_graph_BP(M_to_code, o_code, x, H, phi_code);
+    
     
 %     display(size(M_from_code))
     
