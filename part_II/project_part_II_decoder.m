@@ -21,6 +21,7 @@ function [s_hat] = project_part_II_decoder(...
     k = size(H, 1);
     num_shotgun = temp(end);
     temp = reshape(temp(1:end-1), num_shotgun, 3);
+    temp(:, 1) = temp(:, 1) / 100;
     
     l_shotgun = m / num_shotgun;
     
@@ -142,7 +143,7 @@ function [s_hat] = project_part_II_decoder(...
         %   s_hat - decoded solution using marginal mode
         %          [size m x 1]
 
-        display('Step 5')
+%         display('Step 5')
         for first_node = 1:m
             options = zeros(4, 1);
             for j = 1:4 

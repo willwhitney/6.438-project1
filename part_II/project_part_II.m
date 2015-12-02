@@ -25,6 +25,8 @@ addpath(genpath([pwd '/supplementary_functions_part_II'])); %
 r_dope = 0.1; % some doping rate defined here 
                 % (can depend on some variables in test_file)
 temp = build_temp(s_to_shotgun(s, num_shotgun, l_shotgun));
+temp(:, 1) = 100 * temp(:, 1);
+temp = round(temp);
 temp = [temp(:); num_shotgun];
 
 

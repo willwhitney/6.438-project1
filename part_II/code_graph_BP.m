@@ -5,7 +5,7 @@ function [M_from_code, o_code] = code_graph_BP(M_to_code, o_code, x, H, phi_code
     for i = 1:n
         Mhat_to_code(i) = log(M_to_code(i, 1)) - log(M_to_code(i, 2));
     end
-    display(sum(abs(M_to_code(:, 1) - M_to_code(:, 2))))
+%     display(sum(abs(M_to_code(:, 1) - M_to_code(:, 2))))
     
     phi_hat = ones(n, 1);
     for i = 1:size(phi_hat, 1)
@@ -13,7 +13,7 @@ function [M_from_code, o_code] = code_graph_BP(M_to_code, o_code, x, H, phi_code
     end
     
     % node to factor
-    display('node to factor')
+%     display('node to factor')
     for i = 1:n
 %         fprintf(['node' num2str(i) '\n']);
         node_pot = phi_hat(i);
@@ -42,7 +42,7 @@ function [M_from_code, o_code] = code_graph_BP(M_to_code, o_code, x, H, phi_code
         
     
     % factor to node
-    display('factor to node')
+%     display('factor to node')
     for a = 1:k
 %         fprintf(['factor' num2str(a) '\n']);
         for i = 1:n
