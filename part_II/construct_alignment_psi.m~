@@ -15,11 +15,11 @@ function aligned_psi_source = construct_alignment_psi(temp, psi_source, l_shotgu
     num_samples = size(temp,1);
     for curr=1:num_samples
         score = temp(curr, 1);
-        score = 0.99 * score;
+%         score = 0.75;
         other = temp(curr, 2);
         offset = temp(curr, 3);
         
-        len_match = l_shotgun - offset + 1;
+        len_match = l_shotgun - offset;
         
         curr_st = (curr - 1)*l_shotgun + offset;
 %         curr_fin = curr_st + len_match;

@@ -1,5 +1,5 @@
 function [s_hat] = project_part_II_decoder(...
-    x,H,phi_source,phi_code,psi_source,temp ,s)
+    x,H,phi_source,phi_code,psi_source,temp)
     % [do not modify arguments (input/output) of function]
     % INPUT
     %   x           - k x 1 compressed data vector 
@@ -166,7 +166,7 @@ function [s_hat] = project_part_II_decoder(...
             s_hat(first_node) = argm-1;
         end
         
-        if exist('s')
+        if (exist s
             display(['score: ' num2str(sum(s == s_hat))])
         end
         
