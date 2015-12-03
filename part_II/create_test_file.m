@@ -12,12 +12,12 @@ p = 0.4; % strength of stationarity of source chain
        % (0: identity transition (same state), inf: uniform transition to diff state)
 num_shotgun = 10; % number of shotgun reads
 l_shotgun = 100; % length of shotgun reads
-deg_max_shotgun = 1.0; % max degree of overlap of a read with its adjacent one
-deg_min_shotgun = 0.6; % min degree of overlap of a read with its adjacent one
-noise_shotgun = 0.01; % noise level of shotgun reads
+deg_max_shotgun = 0.9; % max degree of overlap of a read with its adjacent one
+deg_min_shotgun = 0.1; % min degree of overlap of a read with its adjacent one
+noise_shotgun = 0.02; % noise level of shotgun reads
 
 % # parameters for compression
-r = 0.4; % coding rate (= k/n)
+r = 0.5; % coding rate (= k/n)
 
 
 % / / / / / / / / / / / / / / / /

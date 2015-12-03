@@ -57,7 +57,7 @@ disp(['r_dope: ', num2str(r_dope)])
 [phi_source,phi_code] = dope_source(s,r_dope); % dope potentials
 tic
 [s_hat] = project_part_II_decoder(...
-    x,H,phi_source,phi_code,psi_source,temp ,s); % call decoder
+    x,H,phi_source,phi_code,psi_source,temp); % call decoder
 toc
 if(isempty(temp)); sc = 0; else sc = numel(de2bi(temp)); end
 [rH,cH] = size(H);

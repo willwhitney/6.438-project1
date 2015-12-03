@@ -1,5 +1,5 @@
 function [s_hat] = project_part_II_decoder(...
-    x,H,phi_source,phi_code,psi_source,temp ,s)
+    x,H,phi_source,phi_code,psi_source,temp)
     % [do not modify arguments (input/output) of function]
     % INPUT
     %   x           - k x 1 compressed data vector 
